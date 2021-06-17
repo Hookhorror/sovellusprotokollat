@@ -9,7 +9,11 @@ namespace mail_protocols_3
 {
     class Program
     {
+        private const int smtpPortti = 25000;
+        private const int pop3Portti = 25001;
+
         static bool on = true;
+        static bool asiakkaanTyyppiSelvitetty = false;
         static string palvelimenNimi = "Jonin palvelin";
         // static bool edellinenOliData = false;
         static Tilat tila;
@@ -19,26 +23,38 @@ namespace mail_protocols_3
 
         static void Main(string[] args)
         {
-            // Luo soketti
-            Socket sokettiPalvelin = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            // Asetetaan palvelin kuuntelemaan, johon se tarvii osoitteen
-            IPEndPoint iep = new IPEndPoint(IPAddress.Loopback, 25000);
-            sokettiPalvelin.Bind(iep);
-            sokettiPalvelin.Listen(5);
-
-            // Vastaanotetaan porttiin 25000 tuleva asiakas
-            Socket sokettiAsiakas = sokettiPalvelin.Accept();
-            tila = Tilat.YhteysMuodostettu;
-            IPEndPoint iap = (IPEndPoint)sokettiAsiakas.RemoteEndPoint;
-            Console.WriteLine("Yhteys osoitteesta {0} portissa {1}", iap.Address, iap.Port);
-            NetworkStream ns = new NetworkStream(sokettiAsiakas);
+            TcpListener smtpKuuntelija = OdotaYhteytta(); //TESTI
+            smtpKuuntelija.AcceptSocket();                // TESTI
+            // Socket smtpPalvelin = LuoSokettiJaKuuntele(smtpPortti);
+            // Socket pop3Palvelin = LuoSokettiJaKuuntele(pop3Portti);
+            Socket asiakas = LuoSokettiJaVastaanotaAsiakas(smtpPalvelin);
+            // Avataan tietovirta palvelimen ja asiakkaan välille
+            NetworkStream ns = new NetworkStream(asiakas);
             StreamReader sr = new StreamReader(ns);
             StreamWriter sw = new StreamWriter(ns);
 
-            // Eka viesti
+            // Oletetaan että kirjautuminen onnistui ja ilmoitetaan siitä asiakkaalle
             sw.WriteLine("220 " + palvelimenNimi);
             sw.Flush();
+
             // asiakkaan palvelua while silmukassa
+            VastaanotaSmtpViesti(sr, sw);
+        }
+
+        private static TcpListener OdotaYhteytta()
+        {
+            TcpListener kuuntelija = new TcpListener(IPAddress.Loopback, smtpPortti);
+            kuuntelija.Start();
+            while (!kuuntelija.Pending())
+            {
+                Thread.Sleep(100);
+            }
+
+            return kuuntelija;
+        }
+
+        private static void VastaanotaSmtpViesti(StreamReader sr, StreamWriter sw)
+        {
             while (on)
             {
                 string asiakkaanViesti = sr.ReadLine();
@@ -49,6 +65,27 @@ namespace mail_protocols_3
                 OtaRiviTalteen(asiakkaanViesti);
                 TallennaViesti();
             }
+        }
+
+        private static Socket LuoSokettiJaVastaanotaAsiakas(Socket palvelin)
+        {
+            // Luodaaan soketti ja vastaanotetaan porttiin 25000 tuleva asiakas
+            Socket asiakas = palvelin.Accept();
+            tila = Tilat.YhteysMuodostettu;
+            IPEndPoint iap = (IPEndPoint)asiakas.RemoteEndPoint;
+            Console.WriteLine("Yhteys osoitteesta {0} portissa {1}", iap.Address, iap.Port);
+            return asiakas;
+        }
+
+        private static Socket LuoSokettiJaKuuntele(int porttinro)
+        {
+            // Luo soketti
+            Socket sokettiPalvelin = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            // Asetetaan palvelin kuuntelemaan, johon se tarvii osoitteen
+            IPEndPoint iep = new IPEndPoint(IPAddress.Loopback, porttinro);
+            sokettiPalvelin.Bind(iep);
+            sokettiPalvelin.Listen(5);
+            return sokettiPalvelin;
         }
 
         private static void OtaRiviTalteen(string asiakkaanViesti)

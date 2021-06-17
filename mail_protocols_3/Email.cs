@@ -3,8 +3,8 @@ using System;
 class Email
 {
     string message;
-    string receiver;
-    string sender;
+    // string receiver;
+    // string sender;
 
     public Email() { }
 
