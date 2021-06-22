@@ -13,14 +13,14 @@ namespace file_transfer_protocols_2
             Console.WriteLine("tftp client");
             Socket soc = null;
             string server = "127.0.0.1";
-            int port = 69;
-            string fileName = "outrun.jpg"; // ladattava tiedosto
-            string mode = "octet"; // octet or netascii
+            int port = 6969;
+            string fileName = "testi1.txt"; // ladattava tiedosto
+            string mode = "octet"; // octet tai netascii
 
             try
             {
                 soc = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                soc.ReceiveTimeout = 1000;
+                soc.ReceiveTimeout = 5000;
                 IPAddress host = IPAddress.Parse(server);
                 IPEndPoint iep = new IPEndPoint(host, port);
                 EndPoint ep = (EndPoint)iep;
