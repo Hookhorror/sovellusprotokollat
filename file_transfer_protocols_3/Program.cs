@@ -90,9 +90,6 @@ namespace file_transfer_protocols_3
                     {
                         block[i + 4] = rec[i];
                     }
-                    string blokki = new UTF8Encoding().GetString(block, 0, block.Length);
-                    string rekki = new UTF8Encoding().GetString(rec, 0, rec.Length);
-                    // Tähän jäi
 
                     data.SendTo(block, clientRemote);
                     blockNumber++;
