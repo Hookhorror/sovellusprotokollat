@@ -13,10 +13,11 @@ namespace file_transfer_protocols_4
             Console.WriteLine("tftp client");
             Socket soc = null;
             string server = "127.0.0.1";
-            int port = 69;
-            string fileName = "testi2.txt"; // ladattava tiedosto
+            int port = 6969;
+            // int receivingPort = 0;
+            string fileName = "alice.txt"; // ladattava tiedosto
             string mode = "octet"; // octet tai netascii
-            string request = "WRQ"; // WRQ tai RRQ
+            string request = "RRQ"; // WRQ tai RRQ
 
             try
             {
@@ -37,6 +38,8 @@ namespace file_transfer_protocols_4
                     // Kuuntele uusi porttinumero
                     // CreateListeninUdpSocket("127.0.0.1", iep.Port, out soc, out host);
                     // tähän jäi
+                    // WaitForAck(soc, ref ep);
+
                     SendFileTo(host, soc, fileName);
                 }
             }
@@ -52,6 +55,11 @@ namespace file_transfer_protocols_4
             // UdpYhteys asiakas = new UdpYhteys("localhost", 69);
         }
 
+        private static void WaitForAck(Socket soc, ref EndPoint ep)
+        {
+            byte[] rec = new byte[4];
+            soc.ReceiveFrom(rec, 0, ref ep);
+        }
 
         private static void CreateListeninUdpSocket(string ownAddress, int portToListen, out Socket soc, out IPAddress host)
         {
@@ -77,7 +85,9 @@ namespace file_transfer_protocols_4
             {
                 do
                 {
-                    howMany = soc.ReceiveFrom(buffer, ref remote);
+                    // howMany = soc.ReceiveFrom(buffer, ref remote);
+                    WaitForAck(soc, ref remote);
+                    // TODO: Tarkista block numero
                     // Vastaanottojutut tähän väliin
                     howMany = fs.Read(buffer, 0, 512);
                     block = new byte[4 + howMany];
