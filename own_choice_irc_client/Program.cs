@@ -10,8 +10,10 @@ namespace own_choice_irc_client
         static void Main(string[] args)
         {
             Console.WriteLine("Irc client");
+            // Kokeiltu palvelimella InspIRCd, versiolla 3.4.0
+            // Löytyy osoitteesta www.inspircd.org
+            // tai Ubuntusta apt:in kautta
 
-            // string serverAddress = "192.168.1.2";
             IPAddress serverAddress = IPAddress.Parse("192.168.1.2");
             int port = 6667;
             Socket soc = null;
@@ -32,21 +34,16 @@ namespace own_choice_irc_client
                 ReadAllLinesFromStream(sr);
                 ReadAllLinesFromStream(sr);
 
-                sw.WriteLine("PASS pass\r\n");
-                sw.Flush();
-                sw.WriteLine("NICK nick\r\n");
-                sw.Flush();
-                sw.WriteLine("USER username host server realusername\r\n");
-                sw.Flush();
+                SendCommand(sw, "PASS pass");
+                SendCommand(sw, "NICK nick");
+                SendCommand(sw, "USER username host server realusername");
 
                 ReadAllLinesFromStream(sr);
 
-                sw.WriteLine("WHOIS nick\r\n");
-                sw.Flush();
+                SendCommand(sw, "WHOIS nick");
                 ReadAllLinesFromStream(sr);
 
-                sw.WriteLine("QUIT jeejeejepulis");
-                sw.Flush();
+                SendCommand(sw, "QUIT lähtee pois");
                 ReadAllLinesFromStream(sr);
 
             }
@@ -57,13 +54,12 @@ namespace own_choice_irc_client
                 ns.Close();
                 soc.Close();
             }
-            // Avaa TCP yhteys
+        }
 
-            // PASS
-
-            // NICK
-
-            // USER
+        private static void SendCommand(StreamWriter sw, string command)
+        {
+            sw.WriteLine(command + "\r\n");
+            sw.Flush();
         }
 
         private static EndPoint CreateEndPoint(IPAddress serverAddress, int port)
